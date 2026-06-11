@@ -5,10 +5,23 @@
 
 package org.citygml4j.cityjson.model;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 public enum CityJSONVersion {
     v2_0(2, 0),
     v1_1(1, 1),
     v1_0(1, 0);
+
+    private static final Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+).*");
+    private final static Map<String, CityJSONVersion> versions = Arrays.stream(values())
+            .collect(Collectors.toMap(
+                    CityJSONVersion::toValue,
+                    Function.identity()));
 
     private final int major;
     private final int minor;
@@ -53,12 +66,16 @@ public enum CityJSONVersion {
     }
 
     public static CityJSONVersion fromValue(String value) {
-        for (CityJSONVersion v : CityJSONVersion.values()) {
-            if (v.toValue().equals(value))
-                return v;
+        if (value == null) {
+            return null;
         }
 
-        return null;
+        Matcher matcher = versionPattern.matcher(value);
+        if (!matcher.matches()) {
+            return null;
+        }
+
+        return versions.get(matcher.group(1) + "." + matcher.group(2));
     }
 
     @Override
